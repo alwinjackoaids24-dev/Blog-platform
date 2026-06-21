@@ -2,30 +2,27 @@
 <html>
 <head>
     <title>Blog Platform</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-        }
-        .post {
-            border: 1px solid #ddd;
-            padding: 15px;
-            margin-bottom: 15px;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
     <h1>Blog Platform</h1>
 
-    <div class="post">
-        <h2>My First Blog Post</h2>
-        <p>Welcome to my blog platform.</p>
+    <button onclick="createPost()">Create Post</button>
+
+    <div id="posts">
+        <div class="post">
+            <h3>My First Blog Post</h3>
+            <button onclick="this.parentElement.remove()">Delete</button>
+        </div>
+
+        <div class="post">
+            <h3>Second Post</h3>
+            <button onclick="this.parentElement.remove()">Delete</button>
+        </div>
     </div>
 
-    <div class="post">
-        <h2>Second Post</h2>
-        <p>This is another sample blog post.</p>
-    </div>
+    <script src="script.js"></script>
 
 </body>
 </html>
