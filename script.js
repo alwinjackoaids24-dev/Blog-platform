@@ -1,3 +1,15 @@
+function login() {
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+
+    if (username === "admin" && password === "1234") {
+        document.getElementById("loginSection").style.display = "none";
+        document.getElementById("blogSection").style.display = "block";
+        alert("Login Successful!");
+    } else {
+        alert("Invalid Username or Password");
+    }
+}
 function createPost() {
   const title = prompt("Enter post title");
 
