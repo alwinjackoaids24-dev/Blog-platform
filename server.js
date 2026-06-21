@@ -1,19 +1,15 @@
 const express = require('express');
-const fs = require('fs');
+const path = require('path');
 const app = express();
-const PORT = 3000;
-
-// Data load panradhu
-let posts = [];
-if (fs.existsSync('posts.json')) posts = JSON.parse(fs.readFileSync('posts.json'));
-
-let users = [];
-if (fs.existsSync('users.json')) users = JSON.parse(fs.readFileSync('users.json'));
-
-let currentUser = null;
+const PORT = process.env.PORT || 3000;
 
 app.use(express.urlencoded({ extended: true }));
-app.use(express.json()); // API ku json support
+app.use(express.json());
+
+// VERCEL FIX: File save aagathu, memory la mattum data irukum
+let posts = [];
+let users = [];
+let currentUser = null;
 
 // Login check
 function mustLogin(req, res, next) {
@@ -37,7 +33,6 @@ app.post('/register', (req, res) => {
     return res.send('Username already iruku <a href="/register">Thirumba try</a>');
   }
   users.push({u: req.body.u, p: req.body.p});
-  fs.writeFileSync('users.json', JSON.stringify(users, null, 2));
   res.redirect('/login');
 });
 
@@ -75,9 +70,7 @@ app.get('/', mustLogin, (req, res) => {
     if (p.author === currentUser) {
       buttons = `<a href="/edit/${i}">Edit</a> | <a href="/delete/${i}" style="color:red;">Delete</a>`;
     }
-
     let commentsHTML = p.comments? p.comments.map(c => `<li>${c}</li>`).join('') : '';
-
     return `
     <div style="border:1px solid #ccc; padding:15px; margin:15px 0; border-radius:8px;">
       <h3>${p.title}</h3>
@@ -117,7 +110,6 @@ app.post('/post', mustLogin, (req, res) => {
     author: currentUser,
     comments: []
   });
-  fs.writeFileSync('posts.json', JSON.stringify(posts, null, 2));
   res.redirect('/');
 });
 
@@ -126,7 +118,6 @@ app.get('/edit/:id', mustLogin, (req, res) => {
   let id = req.params.id;
   let post = posts[id];
   if (post.author!== currentUser) return res.send('Unaku permission illa bro <a href="/">Back</a>');
-
   res.send(`<h1>Edit Post</h1>
     <form method="POST" action="/edit/${id}">
       <input name="title" value="${post.title}" required><br><br>
@@ -141,7 +132,6 @@ app.post('/edit/:id', mustLogin, (req, res) => {
   if (posts[id].author!== currentUser) return res.redirect('/');
   posts[id].title = req.body.title;
   posts[id].content = req.body.content;
-  fs.writeFileSync('posts.json', JSON.stringify(posts, null, 2));
   res.redirect('/');
 });
 
@@ -150,7 +140,6 @@ app.get('/delete/:id', mustLogin, (req, res) => {
   let id = req.params.id;
   if (posts[id].author!== currentUser) return res.redirect('/');
   posts.splice(id, 1);
-  fs.writeFileSync('posts.json', JSON.stringify(posts, null, 2));
   res.redirect('/');
 });
 
@@ -159,17 +148,14 @@ app.post('/comment/:id', mustLogin, (req, res) => {
   let id = req.params.id;
   if (!posts[id].comments) posts[id].comments = [];
   posts[id].comments.push(`${currentUser}: ${req.body.comment}`);
-  fs.writeFileSync('posts.json', JSON.stringify(posts, null, 2));
   res.redirect('/');
 });
 
-// ========== RESTful API ROUTES ==========
-// GET all posts
+// ========== RESTful API ==========
 app.get('/api/posts', (req, res) => {
   res.json(posts);
 });
 
-// GET single post
 app.get('/api/posts/:id', (req, res) => {
   let id = req.params.id;
   if (posts[id]) {
@@ -179,7 +165,6 @@ app.get('/api/posts/:id', (req, res) => {
   }
 });
 
-// POST create via API
 app.post('/api/posts', mustLogin, (req, res) => {
   let newPost = {
     title: req.body.title,
@@ -188,17 +173,14 @@ app.post('/api/posts', mustLogin, (req, res) => {
     comments: []
   };
   posts.push(newPost);
-  fs.writeFileSync('posts.json', JSON.stringify(posts, null, 2));
   res.status(201).json(newPost);
 });
 
-// DELETE via API
 app.delete('/api/posts/:id', mustLogin, (req, res) => {
   let id = req.params.id;
   if (posts[id].author!== currentUser) return res.status(403).json({error: 'Permission illa'});
   posts.splice(id, 1);
-  fs.writeFileSync('posts.json', JSON.stringify(posts, null, 2));
   res.json({msg: 'Delete aagiduchu'});
 });
 
-app.listen(PORT, () => console.log(`Server running at http://localhost:3000`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
